@@ -81,7 +81,6 @@ class TapGoogleAds(Tap):
     _refresh_token = th.Property(
         "refresh_token",
         th.StringType,
-        required=True,
         secret=True,
     )
     _end_date = datetime.now(timezone.utc).date()
@@ -96,12 +95,10 @@ class TapGoogleAds(Tap):
                     th.Property(
                         "client_id",
                         th.StringType,
-                        required=True,
                     ),
                     th.Property(
                         "client_secret",
                         th.StringType,
-                        required=True,
                         secret=True,
                     ),
                     _refresh_token,
@@ -110,7 +107,6 @@ class TapGoogleAds(Tap):
                     th.Property(
                         "refresh_proxy_url",
                         th.StringType,
-                        required=True,
                     ),
                     th.Property(
                         "refresh_proxy_url_auth",
@@ -119,8 +115,17 @@ class TapGoogleAds(Tap):
                     ),
                     _refresh_token,
                 ),
-            ),
-            required=True,
+            )
+        ),
+        th.Property(
+            "key_file_location",
+            th.StringType,
+            description="The path to a Google JSON credentials file for a service account."
+        ),
+        th.Property(
+            "client_secrets",
+            th.ObjectType(),
+            description="The contents of a Google JSON credentials file for a service account."
         ),
         th.Property(
             "developer_token",

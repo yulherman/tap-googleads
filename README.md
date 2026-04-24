@@ -41,9 +41,18 @@ https://developers.google.com/google-ads/api/docs/first-call/dev-token
 
 Required settings:
 
+One of the following authentication methods is required:
+
+#### OAuth2 Credentials
 - `oauth_credentials.client_id`
 - `oauth_credentials.client_secret`
 - `oauth_credentials.refresh_token`
+
+#### Service Account
+- `key_file_location`: Path to a Google JSON credentials file for a service account.
+- `client_secrets`: The contents of a Google JSON credentials file for a service account.
+
+Always required:
 - `developer_token`
 
 Optional settings:

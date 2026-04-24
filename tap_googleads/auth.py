@@ -77,3 +77,48 @@ class GoogleAdsAuthenticator(OAuthAuthenticator, metaclass=SingletonMeta):
     def oauth_request_body(self) -> dict:
         """Define the OAuth request body for the GoogleAds API."""
         return {}
+
+
+class GoogleAdsServiceAccountAuthenticator(OAuthAuthenticator, metaclass=SingletonMeta):
+    """Authenticator class for GoogleAds using service account."""
+
+    def __init__(
+        self,
+        stream: RESTStreamBase,
+        credentials,
+    ) -> None:
+        """Create a new authenticator.
+
+        Args:
+            stream: The stream instance to use with this authenticator.
+            credentials: The google-auth credentials object.
+        """
+        super().__init__(
+            stream=stream,
+        )
+        self._credentials = credentials
+
+    def update_access_token(self) -> None:
+        """Update `access_token` along with: `last_refreshed` and `expires_in`.
+
+        Raises:
+            RuntimeError: When OAuth login fails.
+        """
+        from google.auth.transport.requests import Request
+
+        try:
+            self._credentials.refresh(Request())
+            self.access_token = self._credentials.token
+            self.expires_in = (
+                (self._credentials.expiry - utc_now()).total_seconds()
+                if self._credentials.expiry
+                else 3600
+            )
+            self.last_refreshed = utc_now()
+        except Exception as ex:
+            raise RuntimeError(f"Failed to refresh service account token: {ex}")
+
+    @property
+    def oauth_request_body(self) -> dict:
+        """Define the OAuth request body for the GoogleAds API."""
+        return {}

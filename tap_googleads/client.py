@@ -9,7 +9,11 @@ import requests
 from singer_sdk.authenticators import OAuthAuthenticator
 from singer_sdk.streams import RESTStream
 
-from tap_googleads.auth import GoogleAdsAuthenticator, ProxyGoogleAdsAuthenticator
+from tap_googleads.auth import (
+    GoogleAdsAuthenticator,
+    GoogleAdsServiceAccountAuthenticator,
+    ProxyGoogleAdsAuthenticator,
+)
 
 # remove old versions once they have been sunset
 # https://developers.google.com/google-ads/api/docs/sunset-dates#timetable
@@ -85,6 +89,27 @@ class GoogleAdsStream(RESTStream):
     @cached_property
     def authenticator(self) -> OAuthAuthenticator:
         """Return a new authenticator object."""
+        # Service Account Auth
+        if self.config.get("key_file_location") or self.config.get("client_secrets"):
+            from google.oauth2 import service_account
+
+            if self.config.get("key_file_location"):
+                import json
+
+                with open(self.config["key_file_location"]) as f:
+                    info = json.load(f)
+            else:
+                info = self.config["client_secrets"]
+
+            scopes = ["https://www.googleapis.com/auth/adwords"]
+            credentials = service_account.Credentials.from_service_account_info(
+                info, scopes=scopes
+            )
+            return GoogleAdsServiceAccountAuthenticator(
+                stream=self, credentials=credentials
+            )
+
+        # Standard OAuth
         base_auth_url = "https://www.googleapis.com/oauth2/v4/token"
         # Silly way to do parameters but it works
 
