@@ -1,6 +1,7 @@
 """GoogleAds Authentication."""
 
 import json
+from datetime import timezone
 from typing import Optional
 
 import requests
@@ -109,12 +110,18 @@ class GoogleAdsServiceAccountAuthenticator(OAuthAuthenticator, metaclass=Singlet
         try:
             self._credentials.refresh(Request())
             self.access_token = self._credentials.token
+            now = utc_now()
+            expiry = self._credentials.expiry
+
+            if expiry and expiry.tzinfo is None:
+                expiry = expiry.replace(tzinfo=timezone.utc)
+
             self.expires_in = (
-                (self._credentials.expiry - utc_now()).total_seconds()
-                if self._credentials.expiry
+                (expiry - now).total_seconds()
+                if expiry
                 else 3600
             )
-            self.last_refreshed = utc_now()
+            self.last_refreshed = now
         except Exception as ex:
             raise RuntimeError(f"Failed to refresh service account token: {ex}")
 
